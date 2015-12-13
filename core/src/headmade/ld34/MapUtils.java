@@ -9,7 +9,6 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
-import com.badlogic.gdx.physics.box2d.joints.PulleyJointDef;
 import com.badlogic.gdx.physics.box2d.joints.WeldJointDef;
 import com.badlogic.gdx.physics.box2d.joints.WheelJointDef;
 
@@ -95,14 +94,20 @@ public class MapUtils {
 				ld34.world.createJoint(wjd);
 			}
 
-			final PulleyJointDef jd = new PulleyJointDef();
-			jd.initialize(wheel, ld34.head, ld34.ground.getWorldCenter(), ld34.ground.getWorldCenter().cpy().add(1, 0),
-					wheel.getWorldCenter().cpy().add(0.5f, 0), ld34.head.getWorldCenter(), 1f);
-			// // jd.initialize(ld34.ground, ld34.head, ld34.head.getWorldCenter(), new Vector2(0f, 1f));
-			// // jd.enableMotor = true;
-			// // jd.maxMotorForce = 70f;
-			// // jd.motorSpeed = 3f;
-			ld34.world.createJoint(jd);
+			wjd.initialize(ld34.head, ld34.ground, ld34.head.getWorldCenter());
+			wjd.referenceAngle = 10f;
+			wjd.dampingRatio = 0.5f;
+			wjd.frequencyHz = 1.5f;
+			ld34.world.createJoint(wjd);
+			// pulley Joint
+			// final PulleyJointDef jd = new PulleyJointDef();
+			// jd.initialize(wheel, ld34.head, ld34.ground.getWorldCenter(), ld34.ground.getWorldCenter().cpy().add(1, 0),
+			// wheel.getWorldCenter().cpy().add(0.5f, 0), ld34.head.getWorldCenter(), 1f);
+			// // // jd.initialize(ld34.ground, ld34.head, ld34.head.getWorldCenter(), new Vector2(0f, 1f));
+			// // // jd.enableMotor = true;
+			// // // jd.maxMotorForce = 70f;
+			// // // jd.motorSpeed = 3f;
+			// ld34.world.createJoint(jd);
 		}
 	}
 }

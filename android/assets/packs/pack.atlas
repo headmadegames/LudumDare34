@@ -11,44 +11,51 @@ beard
   orig: 64, 64
   offset: 0, 0
   index: -1
-browLeft
+beard2
   rotate: false
   xy: 123, 2
-  size: 40, 14
-  orig: 40, 14
+  size: 64, 64
+  orig: 64, 64
   offset: 0, 0
   index: -1
-browRight
+browLeft
   rotate: false
   xy: 244, 2
   size: 40, 14
   orig: 40, 14
   offset: 0, 0
   index: -1
-eyeLeft
+browRight
   rotate: false
   xy: 365, 2
-  size: 54, 24
-  orig: 54, 24
+  size: 40, 14
+  orig: 40, 14
   offset: 0, 0
   index: -1
-eyeRight
+eyeLeft
   rotate: false
   xy: 2, 132
   size: 54, 24
   orig: 54, 24
   offset: 0, 0
   index: -1
-mouth
+eyeRight
   rotate: false
   xy: 123, 132
+  size: 54, 24
+  orig: 54, 24
+  offset: 0, 0
+  index: -1
+mouth
+  rotate: false
+  xy: 244, 132
   size: 119, 24
   orig: 119, 24
   offset: 0, 0
   index: -1
 nose
   rotate: false
-  xy: 244, 132
+  xy: 365, 132
   size: 64, 128
   orig: 64, 128
   offset: 0, 0

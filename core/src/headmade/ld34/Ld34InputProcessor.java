@@ -55,7 +55,9 @@ public class Ld34InputProcessor implements InputProcessor {
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		final Vector3 mouse = ld34.camFace.unproject(new Vector3(screenX, screenY, 0));
 		Gdx.app.log(TAG, "Mouse clicked at " + mouse);
-		ld34.incCurrentState();
+		if (ld34.getCurrentState() != ld34.STATE_GROWING) {
+			ld34.incCurrentState();
+		}
 		return true;
 	}
 

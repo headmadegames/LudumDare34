@@ -2,8 +2,10 @@ package headmade.ld34;
 
 import java.util.HashMap;
 
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -86,13 +88,16 @@ public class Ld34 extends Game {
 	private long							chainSegmentTime;
 	private Color							colorBeard				= new Color(0x222222FF);
 	private Color							colorBeard2				= new Color(0x888888FF);
-	private Color							colorSkin				= new Color(0xBBAAAAFF);
-	private Color							colorBlush				= new Color(0xDDAAAAFF);
-	private float							selectionMoveSpeed		= 0.01f;
+	private Color							colorSkin				= new Color(0xFADACAFF);
+	private Color							colorBlush				= new Color(0xFFAA99FF);
+	private float							selectionMoveSpeed;
+	private float							growSpeed;
 	private float							rotateSpeed				= 7f;
+	private float							chainRotSpeedRad		= 0.04f;
 	private Vector2							selectionPos			= new Vector2(0, 0);
 	private Vector2							selectionPosWorld		= new Vector2(0, 0);
 	private Vector2							selectionMove			= new Vector2(selectionMoveSpeed, 0);
+	private float							chainReferenceAngle		= 0f;
 	private PolygonShape					chainShape;
 	private Polygon							beardPolygon;
 	private Vector2							beardCenter;
@@ -107,6 +112,7 @@ public class Ld34 extends Game {
 	public void create() {
 		UNIT_SCALE = 48f / new Float(Gdx.graphics.getWidth());
 		selectionMoveSpeed = 1 * UNIT_SCALE;
+		growSpeed = 4;
 		selectionMove = new Vector2(selectionMoveSpeed, 0);
 
 		batch = new SpriteBatch();
@@ -124,7 +130,7 @@ public class Ld34 extends Game {
 		textureSolid = new Texture(pix);
 
 		chainShape = new PolygonShape();
-		chainShape.setAsBox(0.5f, 0.3f);
+		chainShape.setAsBox(0.3f, 0.3f);
 		beardCenter = new Vector2();
 		beardPolygon = new Polygon();
 
@@ -200,8 +206,8 @@ public class Ld34 extends Game {
 		}
 
 		{
-			// shapeRenderer.begin(ShapeType.Filled);
-			shapeRenderer.begin(ShapeType.Line);
+			shapeRenderer.begin(ShapeType.Filled);
+			// shapeRenderer.begin(ShapeType.Line);
 			shapeRenderer.setColor(Color.RED);
 
 			final Vector2 v1 = new Vector2();
@@ -245,7 +251,6 @@ public class Ld34 extends Game {
 					polySprites.put(fix, polySprite);
 				} else {
 					polySprite.setOrigin(polygon.getOriginX(), polygon.getOriginY());
-					// polySprite.setPosition(polygon.getX(), polygon.getY());
 				}
 				fillPoly(polySprite, color);
 			}
@@ -278,8 +283,7 @@ public class Ld34 extends Game {
 
 	private void fillPoly(PolygonSprite poly, Color color) {
 		polyBatch.setColor(color);
-		// TODO fix HACK. Why -3.2f?
-		polyBatch.draw(poly.getRegion(), poly.getOriginX() - 3.2f, poly.getOriginY());
+		polyBatch.draw(poly.getRegion(), poly.getOriginX(), poly.getOriginY());
 		// textureSolid2.dispose();
 	}
 
@@ -298,6 +302,7 @@ public class Ld34 extends Game {
 		Box2DUtils.aabb(beard).getCenter(beardCenter);
 		selectionPosWorld.set(beardCenter).add(selectionPos);
 		if (currentState == STATE_POS_SELECT_X || currentState == STATE_POS_SELECT_Y) {
+			// would the next move be out of bounds?
 			if (Box2DUtils.as(beard.getFixtureList().first(), beardPolygon).contains(selectionPosWorld.cpy().add(selectionMove))) {
 				selectionPos.add(selectionMove);
 			} else {
@@ -307,10 +312,25 @@ public class Ld34 extends Game {
 		} else if (currentState == STATE_DIRECTION_SELECT) {
 			selectionMove.rotate(rotateSpeed);
 		} else if (currentState == STATE_GROWING) {
+			if (Gdx.app.getType().equals(ApplicationType.Android) || Gdx.app.getType().equals(ApplicationType.iOS)) {
+				if (Gdx.input.isTouched(0)) {
+
+				}
+			} else {
+				if (Gdx.input.isButtonPressed(Buttons.LEFT)) {
+					Gdx.app.log(TAG, "ROTATING LEFT");
+					// chainReferenceAngle = chainRotSpeedRad;
+					selectionMove.rotateRad(chainRotSpeedRad);
+				}
+				if (Gdx.input.isButtonPressed(Buttons.RIGHT)) {
+					Gdx.app.log(TAG, "ROTATING RIGHT");
+					// chainReferenceAngle = -chainRotSpeedRad;
+					selectionMove.rotateRad(-chainRotSpeedRad);
+				}
+			}
 			if (1000 < System.currentTimeMillis() - chainStartTime) {
 				incCurrentState();
 			} else if (100 < System.currentTimeMillis() - chainSegmentTime) {
-				Gdx.app.log(TAG, "Extending chain");
 				chainSegmentTime = System.currentTimeMillis();
 				currentChain.extend();
 			}
@@ -347,10 +367,13 @@ public class Ld34 extends Game {
 					fixtureDef.shape = chainShape;
 					fixtureDef.density = 0.2f;
 					fixtureDef.filter.categoryBits = 0x0100;
-					jointDef.localAnchorA.y = -Box2DUtils.height(chainShape) / 2;
-					jointDef.localAnchorB.y = Box2DUtils.height(chainShape) / 2;
+					fixtureDef.filter.maskBits = 0x0010;
+					// jointDef.localAnchorA.y = -Box2DUtils.height(chainShape) / 2;
+					// jointDef.localAnchorB.y = Box2DUtils.height(chainShape) / 2;
+					jointDef.localAnchorB.y = selectionMove.cpy().scl(growSpeed).len();
+					// jointDef.localAnchorB.y = selectionMove.cpy().len();
+					jointDef.enableLimit = true;
 					// jointDef.frequencyHz = 0;
-					// jointDef.referenceAngle = selectionMove.angleRad(new Vector2(1, 0));
 					// jointDef.lowerAngle = -0.1f;
 					// jointDef.upperAngle = 0.1f;
 				}
@@ -360,8 +383,8 @@ public class Ld34 extends Game {
 					bodyDef.position.x = selectionPosWorld.x;
 					bodyDef.position.y = selectionPosWorld.y;
 					final float angle = selectionMove.cpy().rotate(90).angleRad();
-					Gdx.app.log(TAG, "Angle " + angle);
-					bodyDef.angle = angle;
+					// bodyDef.angle = angle;// + chainReferenceAngle;
+					// Gdx.app.log(TAG, "Creating segment with bodydef angle " + bodyDef.angle);
 					final Body segment = world.createBody(bodyDef);
 					segment.setUserData(beardBox2dSprite);
 					final Fixture segFix = segment.createFixture(fixtureDef);
@@ -369,22 +392,21 @@ public class Ld34 extends Game {
 					if (index == 0) {
 						final WeldJointDef jd = new WeldJointDef();
 						jd.initialize(head, segment, selectionPosWorld);
-						// jd.referenceAngle = angle;
-						jd.frequencyHz = 0;
-						// jd.bodyA = head;
-						// jd.bodyB = segment;
-						// jd.localAnchorA.x = head.getLocalPoint(selectionPosWorld).x;
-						// jd.localAnchorA.y = head.getLocalPoint(selectionPosWorld).y;
-						// jd.localAnchorB.x = 0f;
-						// jd.localAnchorB.y = 0f;
+						jd.referenceAngle = angle;
+						// jd.frequencyHz = 0;
 						world.createJoint(jd);
 					}
-					selectionPosWorld.add(selectionMove.cpy().nor().scl(0.25f));
+					selectionPos.add(selectionMove.cpy().scl(growSpeed));
+					selectionPosWorld.add(selectionMove.cpy().scl(growSpeed));
 					return segment;
 				}
 
 				@Override
 				public Connection createConnection(Body seg1, int seg1index, Body seg2, int seg2index) {
+					jointDef.referenceAngle = chainReferenceAngle;
+					Gdx.app.log(TAG, "Reference Angle is " + jointDef.referenceAngle);
+					chainReferenceAngle = 0f;
+					// jointDef.frequencyHz = 0;
 					jointDef.bodyA = seg1;
 					jointDef.bodyB = seg2;
 					return new Connection(world.createJoint(jointDef));
@@ -417,5 +439,14 @@ public class Ld34 extends Game {
 		world.dispose();
 		pix.dispose();
 		Assets.instance.dispose();
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		camFace.viewportWidth = width * UNIT_SCALE / 4f;
+		camFace.viewportHeight = height * UNIT_SCALE / 4f;
+		// camFace.position.set(width * UNIT_SCALE / 2, height * UNIT_SCALE / 2, 0);
+		camFace.update();
+		super.resize(width, height);
 	}
 }
