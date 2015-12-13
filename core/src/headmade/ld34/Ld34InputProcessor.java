@@ -17,7 +17,6 @@ public class Ld34InputProcessor implements InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
-
 		if (keycode == Keys.LEFT || keycode == Keys.A) {
 			ld34.camFace.translate(-1f, 0f);
 			ld34.camFace.update();
@@ -36,6 +35,7 @@ public class Ld34InputProcessor implements InputProcessor {
 			return true;
 		} else if (keycode == Keys.F12) {
 			ld34.debugEnabled = !ld34.debugEnabled;
+			ld34.scoreService.calcScore();
 			return true;
 		}
 		return false;
@@ -55,6 +55,17 @@ public class Ld34InputProcessor implements InputProcessor {
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		final Vector3 mouse = ld34.camFace.unproject(new Vector3(screenX, screenY, 0));
 		Gdx.app.log(TAG, "Mouse clicked at " + mouse);
+
+		if (ld34.showLogo) {
+			ld34.showLogo = false;
+			return true;
+		}
+
+		if (ld34.showInstructions) {
+			ld34.showInstructions = false;
+			return true;
+		}
+
 		if (ld34.getCurrentState() != ld34.STATE_GROWING) {
 			ld34.incCurrentState();
 		}

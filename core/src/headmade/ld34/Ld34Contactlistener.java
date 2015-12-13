@@ -16,6 +16,19 @@ public class Ld34Contactlistener implements ContactListener {
 
 	@Override
 	public void beginContact(Contact contact) {
+		if (contact.getFixtureA().getFilterData().categoryBits == Ld34.CATEGORYBITS_HAIR
+				|| contact.getFixtureB().getFilterData().categoryBits == Ld34.CATEGORYBITS_HAIR) {
+			if (contact.getFixtureA().getFilterData().categoryBits == Ld34.CATEGORYBITS_FACIALS
+					|| contact.getFixtureB().getFilterData().categoryBits == Ld34.CATEGORYBITS_FACIALS) {
+
+				ld34.scoreService.incFacialCollisions();
+
+				if (ld34.getCurrentState() == Ld34.STATE_GROWING
+						&& (contact.getFixtureA().equals(ld34.lastChainFixture) || contact.getFixtureB().equals(ld34.lastChainFixture))) {
+					ld34.scoreService.incFacialCreations();
+				}
+			}
+		}
 	}
 
 	@Override

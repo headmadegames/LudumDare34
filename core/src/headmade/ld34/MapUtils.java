@@ -32,7 +32,13 @@ public class MapUtils {
 				fixture.setSensor(true);
 				// }
 				if (fixture.getBody().getUserData() != null) {
-					fixture.setUserData(fixture.getBody().getUserData());
+					for (final Body facial : ld34.facials) {
+						fixture.setUserData(fixture.getBody().getUserData());
+						if (facial.equals(fixture.getBody())) {
+							fixture.getFilterData().categoryBits = Ld34.CATEGORYBITS_FACIALS;
+							fixture.getFilterData().maskBits = Ld34.MASKBITS_FACIALS;
+						}
+					}
 				}
 				super.created(fixture, mapObject);
 			}
@@ -51,6 +57,9 @@ public class MapUtils {
 					ld34.hair = body;
 				} else if ("ground".equals(mapObject.getName())) {
 					ld34.ground = body;
+				} else if ("body".equals(mapObject.getName())) {
+					body.setUserData(new Box2DSprite(Assets.instance.skin.get("body", TextureRegion.class)));
+					ld34.body = body;
 				}
 			}
 
@@ -72,10 +81,10 @@ public class MapUtils {
 
 			final WheelJointDef mjd = new WheelJointDef();
 			mjd.initialize(ld34.ground, wheel, wheel.getWorldCenter(), new Vector2(0, 1));
-			mjd.motorSpeed = 1f;
-			// mjd.enableMotor = true;
+			mjd.motorSpeed = 3f;
+			mjd.enableMotor = true;
 			mjd.collideConnected = false;
-			mjd.maxMotorTorque = 100f;
+			mjd.maxMotorTorque = 200f;
 			ld34.world.createJoint(mjd);
 
 			final WeldJointDef wjd = new WeldJointDef();
@@ -83,6 +92,9 @@ public class MapUtils {
 			ld34.world.createJoint(wjd);
 
 			wjd.initialize(ld34.head, ld34.hair, ld34.hair.getWorldCenter());
+			ld34.world.createJoint(wjd);
+
+			wjd.initialize(ld34.head, ld34.body, ld34.hair.getWorldCenter());
 			ld34.world.createJoint(wjd);
 
 			wjd.frequencyHz = 2f;
@@ -103,10 +115,6 @@ public class MapUtils {
 			// final PulleyJointDef jd = new PulleyJointDef();
 			// jd.initialize(wheel, ld34.head, ld34.ground.getWorldCenter(), ld34.ground.getWorldCenter().cpy().add(1, 0),
 			// wheel.getWorldCenter().cpy().add(0.5f, 0), ld34.head.getWorldCenter(), 1f);
-			// // // jd.initialize(ld34.ground, ld34.head, ld34.head.getWorldCenter(), new Vector2(0f, 1f));
-			// // // jd.enableMotor = true;
-			// // // jd.maxMotorForce = 70f;
-			// // // jd.motorSpeed = 3f;
 			// ld34.world.createJoint(jd);
 		}
 	}

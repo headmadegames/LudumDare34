@@ -25,6 +25,7 @@ import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.SkinLoader;
 import com.badlogic.gdx.assets.loaders.SkinLoader.SkinParameter;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
@@ -51,7 +52,8 @@ public class Assets implements Disposable, AssetErrorListener {
 	public static final SkinParameter	skinParameter	= new SkinLoader.SkinParameter(Assets.GAME_ATLAS);
 	public static final String			skinPath		= Assets.PACKS_BASE + Assets.PACK + ".json";
 	public static final String			music			= "music/bg.ogg";
-	public static final String			sndGrow			= "sounds/grow.wav";
+	public static final String			sndGrow			= "sounds/growing.wav";
+	public static final String			sndReleave		= "sounds/releave.wav";
 	public static final String			txBeard			= "beard";
 	public static final String			mapHead			= "head.tmx";
 
@@ -111,8 +113,9 @@ public class Assets implements Disposable, AssetErrorListener {
 	public void loadAll() {
 		Gdx.app.debug(TAG, "Init assets...");
 
-		// assetsManager.load(music, Music.class);
-		// assetsManager.load(sndGrow, Sound.class);
+		assetsManager.load(music, Music.class);
+		assetsManager.load(sndGrow, Sound.class);
+		assetsManager.load(sndReleave, Sound.class);
 
 		assetsManager.load(skinPath, Skin.class, skinParameter);
 
@@ -127,7 +130,7 @@ public class Assets implements Disposable, AssetErrorListener {
 	}
 
 	public void playSound(String name) {
-		playSound(name, 1f);
+		playSound(name, 0.5f);
 	}
 
 	public void playSound(String name, float volume) {
