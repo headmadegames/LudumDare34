@@ -210,8 +210,8 @@ public class Ld34 extends Game {
 			// shapeRenderer.begin(ShapeType.Line);
 			shapeRenderer.setColor(Color.RED);
 
-			final Vector2 v1 = new Vector2();
-			Box2DUtils.aabb(beard).getCenter(v1).add(selectionPos);
+			final Vector2 v1 = selectionPosWorld.cpy();
+			// Box2DUtils.aabb(beard).getCenter(v1).add(selectionPos);
 			final Vector2 v2 = v1.cpy();
 			if (currentState == STATE_POS_SELECT_X) {
 				v1.y = -100;
@@ -221,7 +221,7 @@ public class Ld34 extends Game {
 				v1.x = -100;
 				v2.x = 100;
 				shapeRenderer.line(v1, v2);
-			} else if (currentState == STATE_DIRECTION_SELECT) {
+			} else if (currentState == STATE_GROWING || currentState == STATE_DIRECTION_SELECT) {
 				final Vector2 triAddVec = selectionMove.cpy().scl(4);
 				final Vector2 v3 = v1.cpy().add(triAddVec);
 				v1.add(triAddVec.rotate(90));
@@ -319,18 +319,18 @@ public class Ld34 extends Game {
 			} else {
 				if (Gdx.input.isButtonPressed(Buttons.LEFT)) {
 					Gdx.app.log(TAG, "ROTATING LEFT");
-					// chainReferenceAngle = chainRotSpeedRad;
+					chainReferenceAngle += chainRotSpeedRad;
 					selectionMove.rotateRad(chainRotSpeedRad);
 				}
 				if (Gdx.input.isButtonPressed(Buttons.RIGHT)) {
 					Gdx.app.log(TAG, "ROTATING RIGHT");
-					// chainReferenceAngle = -chainRotSpeedRad;
+					chainReferenceAngle += -chainRotSpeedRad;
 					selectionMove.rotateRad(-chainRotSpeedRad);
 				}
 			}
-			if (1000 < System.currentTimeMillis() - chainStartTime) {
+			if (3000 < System.currentTimeMillis() - chainStartTime) {
 				incCurrentState();
-			} else if (100 < System.currentTimeMillis() - chainSegmentTime) {
+			} else if (300 < System.currentTimeMillis() - chainSegmentTime) {
 				chainSegmentTime = System.currentTimeMillis();
 				currentChain.extend();
 			}
@@ -365,7 +365,7 @@ public class Ld34 extends Game {
 				{ // constructor
 					bodyDef.type = BodyType.DynamicBody;
 					fixtureDef.shape = chainShape;
-					fixtureDef.density = 0.2f;
+					fixtureDef.density = 0.1f;
 					fixtureDef.filter.categoryBits = 0x0100;
 					fixtureDef.filter.maskBits = 0x0010;
 					// jointDef.localAnchorA.y = -Box2DUtils.height(chainShape) / 2;
@@ -383,7 +383,7 @@ public class Ld34 extends Game {
 					bodyDef.position.x = selectionPosWorld.x;
 					bodyDef.position.y = selectionPosWorld.y;
 					final float angle = selectionMove.cpy().rotate(90).angleRad();
-					// bodyDef.angle = angle;// + chainReferenceAngle;
+					bodyDef.angle = angle;// + chainReferenceAngle;
 					// Gdx.app.log(TAG, "Creating segment with bodydef angle " + bodyDef.angle);
 					final Body segment = world.createBody(bodyDef);
 					segment.setUserData(beardBox2dSprite);
@@ -404,8 +404,8 @@ public class Ld34 extends Game {
 				@Override
 				public Connection createConnection(Body seg1, int seg1index, Body seg2, int seg2index) {
 					jointDef.referenceAngle = chainReferenceAngle;
-					Gdx.app.log(TAG, "Reference Angle is " + jointDef.referenceAngle);
 					chainReferenceAngle = 0f;
+					Gdx.app.log(TAG, "Reference Angle is " + jointDef.referenceAngle);
 					// jointDef.frequencyHz = 0;
 					jointDef.bodyA = seg1;
 					jointDef.bodyB = seg2;
