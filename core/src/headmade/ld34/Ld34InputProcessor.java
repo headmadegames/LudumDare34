@@ -17,26 +17,28 @@ public class Ld34InputProcessor implements InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
-		if (keycode == Keys.LEFT || keycode == Keys.A) {
-			ld34.camFace.translate(-1f, 0f);
-			ld34.camFace.update();
-			return true;
-		} else if (keycode == Keys.RIGHT || keycode == Keys.D) {
-			ld34.camFace.translate(1f, 0f);
-			ld34.camFace.update();
-			return true;
-		} else if (keycode == Keys.UP || keycode == Keys.W) {
-			ld34.camFace.translate(0f, 1f);
-			ld34.camFace.update();
-			return true;
-		} else if (keycode == Keys.DOWN || keycode == Keys.S) {
-			ld34.camFace.translate(0f, -1f);
-			ld34.camFace.update();
-			return true;
-		} else if (keycode == Keys.F12) {
-			ld34.debugEnabled = !ld34.debugEnabled;
-			ld34.scoreService.calcScore();
-			return true;
+		if (ld34.debugEnabled) {
+			if (keycode == Keys.LEFT || keycode == Keys.A) {
+				ld34.camFace.translate(-1f, 0f);
+				ld34.camFace.update();
+				return true;
+			} else if (keycode == Keys.RIGHT || keycode == Keys.D) {
+				ld34.camFace.translate(1f, 0f);
+				ld34.camFace.update();
+				return true;
+			} else if (keycode == Keys.UP || keycode == Keys.W) {
+				ld34.camFace.translate(0f, 1f);
+				ld34.camFace.update();
+				return true;
+			} else if (keycode == Keys.DOWN || keycode == Keys.S) {
+				ld34.camFace.translate(0f, -1f);
+				ld34.camFace.update();
+				return true;
+			} else if (keycode == Keys.F12) {
+				ld34.debugEnabled = !ld34.debugEnabled;
+				ld34.scoreService.calcScore();
+				return true;
+			}
 		}
 		return false;
 	}
@@ -66,6 +68,12 @@ public class Ld34InputProcessor implements InputProcessor {
 			return true;
 		}
 
+		if (ld34.showRating) {
+			ld34.showRating = false;
+			ld34.reset();
+			return true;
+		}
+
 		if (ld34.getCurrentState() != ld34.STATE_GROWING) {
 			ld34.incCurrentState();
 		}
@@ -89,10 +97,12 @@ public class Ld34InputProcessor implements InputProcessor {
 
 	@Override
 	public boolean scrolled(int amount) {
-		ld34.camFace.zoom += amount * 0.5f;
-		ld34.camFace.zoom = MathUtils.clamp(ld34.camFace.zoom, 0.5f, 50f);
-		ld34.camFace.update();
-		Gdx.app.log(TAG, "new zoom " + ld34.camFace.zoom);
+		if (ld34.debugEnabled) {
+			ld34.camFace.zoom += amount * 0.5f;
+			ld34.camFace.zoom = MathUtils.clamp(ld34.camFace.zoom, 0.5f, 50f);
+			ld34.camFace.update();
+			Gdx.app.log(TAG, "new zoom " + ld34.camFace.zoom);
+		}
 		return false;
 	}
 

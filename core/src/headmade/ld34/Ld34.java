@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.g2d.PolygonSprite;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
@@ -37,6 +38,7 @@ import com.badlogic.gdx.physics.box2d.Shape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 import com.badlogic.gdx.physics.box2d.joints.WeldJointDef;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 
 import net.dermetfan.gdx.graphics.g2d.Box2DSprite;
@@ -94,10 +96,12 @@ public class Ld34 extends Game {
 
 	protected boolean						showLogo				= true;
 	protected boolean						showInstructions		= true;
+	protected boolean						showRating				= false;
 
 	private Chain							currentChain;
 	private int								currentState			= 0;
-	private long							startTime;
+	private Long							startTime;
+	private long							timeLeft;
 	private long							chainStartTime;
 	private long							chainSegmentTime;
 	private Color							colorBeard				= new Color(0x404040FF);
@@ -115,6 +119,7 @@ public class Ld34 extends Game {
 	private PolygonShape					chainShape;
 	private Polygon							beardPolygon;
 	private Vector2							beardCenter;
+	private ScoreVo							rating;
 
 	private Pixmap							pix;
 	private Texture							textureSolid;
@@ -125,6 +130,7 @@ public class Ld34 extends Game {
 	private HashMap<Fixture, PolygonSprite>	polySprites				= new HashMap<Fixture, PolygonSprite>();
 	private Sound							sndGrow;
 	private Sound							sndReleave;
+	private BitmapFont						font;
 
 	@Override
 	public void create() {
@@ -157,6 +163,9 @@ public class Ld34 extends Game {
 		Assets.instance.loadAll();
 		Assets.assetsManager.finishLoading();
 		Assets.instance.onFinishLoading();
+
+		font = Assets.instance.skin.getFont("default-font");
+		// font.getData().setScale(2, 2);
 
 		final Music music = Assets.assetsManager.get(Assets.music, Music.class);
 		music.setVolume(0.2f);
@@ -206,17 +215,51 @@ public class Ld34 extends Game {
 			return;
 		}
 
+		if (showRating) {
+			final OrthographicCamera cam = camPix;
+			{
+				batch.setProjectionMatrix(cam.combined);
+				batch.begin();
+
+				font.setColor(Color.WHITE);
+
+				final String text = "Your Score:\n\nBalance " + rating.balance + "\nSymmetry " + rating.symetry + "\nCreativity "
+						+ rating.variety;
+
+				font.draw(batch, text, -cam.viewportWidth / 2, cam.viewportHeight / 3, cam.viewportWidth, Align.center, true);
+				// font.draw(batch, "" + timeLeft / 1000 + " Seconds left", -camPix.viewportWidth / 2, -camPix.viewportHeight / 3);
+
+				batch.end();
+			}
+			return;
+		}
+
 		update();
-		final Camera cam = camFace;
+
+		if (timeLeft < 0) {
+			showRating = true;
+			rating = scoreService.calcScore();
+			startTime = null;
+			timeLeft = 0;
+			return;
+		} else if (startTime == null) {
+			startTime = System.currentTimeMillis();
+		}
+
+		Camera cam = camFace;
 
 		shapeRenderer.setProjectionMatrix(cam.combined);
 		polyBatch.setProjectionMatrix(cam.combined);
+		batch.setProjectionMatrix(cam.combined);
 
 		{ // fill hair
 			shapeRenderer.begin(ShapeType.Filled);
 
 			shapeRenderer.setColor(colorBeard);
 			drawCircles(hair.getFixtureList());
+
+			shapeRenderer.setColor(Color.ROYAL);
+			drawCircles(body.getFixtureList());
 
 			shapeRenderer.end();
 		}
@@ -293,6 +336,25 @@ public class Ld34 extends Game {
 			shapeRenderer.end();
 		}
 
+		cam = camPix;
+		{
+			batch.setProjectionMatrix(cam.combined);
+			batch.begin();
+
+			if (timeLeft < 5 * 1000) {
+				font.setColor(Color.RED);
+			} else if (timeLeft < 10 * 1000) {
+				font.setColor(Color.ORANGE);
+			} else {
+				font.setColor(Color.WHITE);
+			}
+			font.draw(batch, "" + timeLeft / 1000 + " Seconds left", -cam.viewportWidth / 2, -cam.viewportHeight / 3, cam.viewportWidth,
+					Align.center, false);
+			// font.draw(batch, "" + timeLeft / 1000 + " Seconds left", -camPix.viewportWidth / 2, -camPix.viewportHeight / 3);
+
+			batch.end();
+		}
+
 		if (debugEnabled) {
 			box2dRenderer.render(world, cam.combined);
 		}
@@ -357,6 +419,10 @@ public class Ld34 extends Game {
 
 	private void update() {
 		// camBeard.update();
+
+		if (startTime != null) {
+			timeLeft = startTime + 10 * 1000 - System.currentTimeMillis();
+		}
 
 		world.step(TIME_STEP, VELOCITY_ITERS, POSITION_ITERS);
 
@@ -529,5 +595,18 @@ public class Ld34 extends Game {
 		// camPix.update();
 
 		super.resize(width, height);
+	}
+
+	public void reset() {
+		sndGrow.stop();
+		startTime = null;
+		showRating = false;
+		currentState = STATE_GROWING;
+		incCurrentState();
+		for (final Chain chain : chains) {
+			chain.destroy(0, chain.length() - 1);
+		}
+		chains.clear();
+		scoreService = new ScoreService(this);
 	}
 }

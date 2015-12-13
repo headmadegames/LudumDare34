@@ -58,7 +58,7 @@ public class MapUtils {
 				} else if ("ground".equals(mapObject.getName())) {
 					ld34.ground = body;
 				} else if ("body".equals(mapObject.getName())) {
-					body.setUserData(new Box2DSprite(Assets.instance.skin.get("body", TextureRegion.class)));
+					// body.setUserData(new Box2DSprite(Assets.instance.skin.get("body", TextureRegion.class)));
 					ld34.body = body;
 				}
 			}
