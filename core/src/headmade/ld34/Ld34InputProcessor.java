@@ -17,6 +17,7 @@ public class Ld34InputProcessor implements InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
+		ld34.scoreService.calcScore();
 		if (ld34.debugEnabled) {
 			if (keycode == Keys.LEFT || keycode == Keys.A) {
 				ld34.camFace.translate(-1f, 0f);

@@ -18,7 +18,7 @@
   </object>
  </objectgroup>
  <objectgroup color="#55ffff" name="body">
-  <object id="53" name="body" type="object" x="-431" y="90" width="928" height="928">
+  <object id="53" name="body" type="object" x="-240" y="85" width="544" height="544">
    <properties>
     <property name="bodyType" value="DynamicBody"/>
    </properties>

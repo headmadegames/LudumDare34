@@ -215,35 +215,17 @@ public class Ld34 extends Game {
 			return;
 		}
 
-		if (showRating) {
-			final OrthographicCamera cam = camPix;
-			{
-				batch.setProjectionMatrix(cam.combined);
-				batch.begin();
-
-				font.setColor(Color.WHITE);
-
-				final String text = "Your Score:\n\nBalance " + rating.balance + "\nSymmetry " + rating.symetry + "\nCreativity "
-						+ rating.variety;
-
-				font.draw(batch, text, -cam.viewportWidth / 2, cam.viewportHeight / 3, cam.viewportWidth, Align.center, true);
-				// font.draw(batch, "" + timeLeft / 1000 + " Seconds left", -camPix.viewportWidth / 2, -camPix.viewportHeight / 3);
-
-				batch.end();
+		if (!showRating) {
+			update();
+			if (timeLeft < 0) {
+				showRating = true;
+				rating = scoreService.calcScore();
+				startTime = null;
+				timeLeft = 0;
+				return;
+			} else if (startTime == null) {
+				startTime = System.currentTimeMillis();
 			}
-			return;
-		}
-
-		update();
-
-		if (timeLeft < 0) {
-			showRating = true;
-			rating = scoreService.calcScore();
-			startTime = null;
-			timeLeft = 0;
-			return;
-		} else if (startTime == null) {
-			startTime = System.currentTimeMillis();
 		}
 
 		Camera cam = camFace;
@@ -341,16 +323,28 @@ public class Ld34 extends Game {
 			batch.setProjectionMatrix(cam.combined);
 			batch.begin();
 
-			if (timeLeft < 5 * 1000) {
-				font.setColor(Color.RED);
-			} else if (timeLeft < 10 * 1000) {
-				font.setColor(Color.ORANGE);
+			if (showRating) {
+				{
+					font.setColor(Color.WHITE);
+
+					final String text = "Your Score:\n\nBalance " + rating.getBalanceRating() + "\nCreativity " + rating.getVarietyRating()
+							+ "\nImpressiveness " + rating.getImpressivenessRating();
+
+					font.draw(batch, text, -cam.viewportWidth / 2, cam.viewportHeight * 0.4f, cam.viewportWidth, Align.center, true);
+					// font.draw(batch, "" + timeLeft / 1000 + " Seconds left", -camPix.viewportWidth / 2, -camPix.viewportHeight / 3);
+				}
 			} else {
-				font.setColor(Color.WHITE);
+				if (timeLeft < 5 * 1000) {
+					font.setColor(Color.RED);
+				} else if (timeLeft < 10 * 1000) {
+					font.setColor(Color.ORANGE);
+				} else {
+					font.setColor(Color.WHITE);
+				}
+				font.draw(batch, "" + timeLeft / 1000 + " Seconds left", -cam.viewportWidth / 2, -cam.viewportHeight / 3, cam.viewportWidth,
+						Align.center, false);
+				// font.draw(batch, "" + timeLeft / 1000 + " Seconds left", -camPix.viewportWidth / 2, -camPix.viewportHeight / 3);
 			}
-			font.draw(batch, "" + timeLeft / 1000 + " Seconds left", -cam.viewportWidth / 2, -cam.viewportHeight / 3, cam.viewportWidth,
-					Align.center, false);
-			// font.draw(batch, "" + timeLeft / 1000 + " Seconds left", -camPix.viewportWidth / 2, -camPix.viewportHeight / 3);
 
 			batch.end();
 		}
@@ -421,7 +415,7 @@ public class Ld34 extends Game {
 		// camBeard.update();
 
 		if (startTime != null) {
-			timeLeft = startTime + 10 * 1000 - System.currentTimeMillis();
+			timeLeft = startTime + 30 * 1000 - System.currentTimeMillis();
 		}
 
 		world.step(TIME_STEP, VELOCITY_ITERS, POSITION_ITERS);
@@ -458,9 +452,9 @@ public class Ld34 extends Game {
 						selectionMove.rotateRad(-chainRotSpeedRad);
 					}
 				}
-				if (3000 < System.currentTimeMillis() - chainStartTime) {
+				if (1000 < System.currentTimeMillis() - chainStartTime) {
 					incCurrentState();
-				} else if (300 < System.currentTimeMillis() - chainSegmentTime) {
+				} else if (100 < System.currentTimeMillis() - chainSegmentTime) {
 					chainSegmentTime = System.currentTimeMillis();
 					currentChain.extend();
 				}

@@ -32,7 +32,7 @@ public class ScoreService {
 			Float lastAngle = null;
 			float lastAngleDiff = 0f;
 			for (final Body segment : beardStatVo.chain.getSegments()) {
-				final Vector2 segmentPos = segment.getWorldCenter();
+				final Vector2 segmentPos = segment.getWorldCenter().cpy().sub(ld34.head.getWorldCenter());
 				if (beardStatVo.startPoint == null) {
 					beardStatVo.startPoint = segmentPos;
 					beardStatVo.minX = beardStatVo.startPoint.x;
@@ -53,28 +53,51 @@ public class ScoreService {
 				}
 				beardStatVo.segmentCount++;
 				beardStatVo.totalMass += segment.getMass();
-				beardStatVo.balance += balanceFactor(center, segmentPos.x);
+				beardStatVo.balance += segmentPos.x;
 				beardStatVo.balanceMass += beardStatVo.balance * segment.getMass();
 				beardStatVo.angleSum += segment.getAngle();
-				if (lastAngle == null) {
-					lastAngle = segment.getAngle();
-				} else {
-					final float angleDiff = lastAngle - segment.getAngle();
-					beardStatVo.refAngleDiffSum += ((RevoluteJoint) segment.getJointList().first().joint).getReferenceAngle();
-					beardStatVo.angleDiffSum += angleDiff;
-					if (!MathUtils.isEqual(angleDiff, lastAngleDiff) // not equal
-							&& ((angleDiff < 0f && lastAngle > 0f) || (angleDiff > 0f && lastAngle < 0f))) {
-						beardStatVo.directionChanges++;
+
+				if (segment.getJointList().first().joint instanceof RevoluteJoint) {
+					final float refAngle = ((RevoluteJoint) segment.getJointList().first().joint).getReferenceAngle();
+					if (lastAngle == null) {
+						lastAngle = refAngle;
+					} else {
+						final float angleDiff = lastAngle - refAngle;
+						beardStatVo.refAngleChange = Math.abs(refAngle);
+						beardStatVo.refAngleDiffSum += angleDiff;
+						// beardStatVo.angleDiffSum += angleDiff;
+						if (!MathUtils.isEqual(angleDiff, lastAngleDiff) // not equal
+								&& ((angleDiff < 0f && lastAngle > 0f) || (angleDiff > 0f && lastAngle < 0f))) {
+							beardStatVo.directionChanges++;
+						}
+						lastAngle = refAngle;
+						lastAngleDiff = angleDiff;
 					}
-					lastAngle = segment.getAngle();
-					lastAngleDiff = angleDiff;
 				}
 			}
-			score.balance += beardStatVo.balance;
-			score.variety += beardStatVo.angleDiffSum;
+			score.balance += beardStatVo.balanceMass;
+			score.variety += Math.abs(beardStatVo.refAngleDiffSum) + beardStatVo.directionChanges;
 
 			Gdx.app.log(TAG, "" + beardStatVo);
 		}
+
+		float minX = 0;
+		float minY = 0;
+		float maxX = 0;
+		float maxY = 0;
+		for (final BeardStatVo beardStatVo : beardChains) {
+			if (minX > beardStatVo.minX) {
+				minX = beardStatVo.minX;
+			} else if (maxX < beardStatVo.maxX) {
+				maxX = beardStatVo.maxX;
+			}
+			if (minY > beardStatVo.minY) {
+				minY = beardStatVo.minY;
+			} else if (maxY < beardStatVo.maxY) {
+				maxY = beardStatVo.maxY;
+			}
+		}
+		score.impressiveness = (maxX - minX) + (maxY - minY);
 
 		score.itchiness = facialCollisions + facialCreations * 20;
 

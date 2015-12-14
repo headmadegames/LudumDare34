@@ -16,6 +16,7 @@ public class BeardStatVo {
 	public float				angleSum			= 0f;
 	public float				angleDiffSum		= 0f;
 	public float				refAngleDiffSum		= 0f;
+	public float				refAngleChange		= 0f;
 	public float				directionChanges	= 0f;
 	public float				minX				= 0f;
 	public float				minY				= 0f;
