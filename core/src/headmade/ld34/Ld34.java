@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.EarClippingTriangulator;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -254,7 +255,7 @@ public class Ld34 extends Game {
 			// polyBatch.end();
 
 			polyBatch.begin();
-			fillPolys(head.getFixtureList(), colorSkin);
+			fillPolys(head.getFixtureList(), colorBlush);
 			polyBatch.end();
 		}
 
@@ -271,7 +272,7 @@ public class Ld34 extends Game {
 		{ // fill head
 			shapeRenderer.begin(ShapeType.Filled);
 
-			shapeRenderer.setColor(colorSkin);
+			shapeRenderer.setColor(colorBlush);
 			drawCircles(head.getFixtureList());
 
 			shapeRenderer.end();
@@ -452,14 +453,25 @@ public class Ld34 extends Game {
 						selectionMove.rotateRad(-chainRotSpeedRad);
 					}
 				}
-				if (1000 < System.currentTimeMillis() - chainStartTime) {
+				if (3000 < System.currentTimeMillis() - chainStartTime) {
 					incCurrentState();
-				} else if (100 < System.currentTimeMillis() - chainSegmentTime) {
+				} else if (300 < System.currentTimeMillis() - chainSegmentTime) {
 					chainSegmentTime = System.currentTimeMillis();
 					currentChain.extend();
 				}
 			}
 		}
+
+		if (currentState == STATE_GROWING) {
+			colorBlush.r = MathUtils.clamp(colorBlush.r + 0.001f, 0.75f, 0.9f);
+			colorBlush.g = MathUtils.clamp(colorBlush.g - 0.001f, 0.4f, 1f);
+			colorBlush.b = MathUtils.clamp(colorBlush.b - 0.001f, 0.3f, 1f);
+		} else {
+			colorBlush.r = MathUtils.clamp(colorBlush.r - 0.001f, colorSkin.r, 0.9f);
+			colorBlush.g = MathUtils.clamp(colorBlush.g + 0.001f, 0.4f, colorSkin.g);
+			colorBlush.b = MathUtils.clamp(colorBlush.b + 0.001f, 0.3f, colorSkin.b);
+		}
+
 	}
 
 	public void incCurrentState() {

@@ -10,7 +10,7 @@ import headmade.ld34.Ld34;
 
 public class Ld34Launcher {
 
-	private static boolean	rebuildAtlas		= true;
+	private static boolean	rebuildAtlas		= false;
 	// private static boolean rebuildAtlas = false;
 	private static boolean	drawDebugOutline	= false;
 
